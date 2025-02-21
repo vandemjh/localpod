@@ -1,5 +1,6 @@
 const express = require('express');
 const RSS = require('rss');
+const { feedService } = require('./service/feed');
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ router.get('/', (req, res) => {
     site_url: 'http://localhost:3000',
   });
 
-  feedItems.forEach((item) => feed.item(item));
+  feedService.getFeed().forEach((item) => feed.item(item));
 
   res.set('Content-Type', 'application/xml');
   res.send(feed.xml());
