@@ -1,6 +1,36 @@
 const ollama = require('ollama').default;
 
 const TEXT_CUTOFF = 1_000;
+const RETRIES = 5;
+
+query = async (prompt) => {
+  let result = null;
+  let attempts = RETRIES;
+  while (!result && attempts < 5) {
+    try {
+      const response = await ollama.chat({
+        model: 'llama3.2',
+        messages: [{ role: 'user', content: prompt }],
+      });
+
+      const output = response.message.content;
+      const titleMatch = output.match(/Title:\s*(.*)/);
+      const descriptionMatch = output.match(/Description:\s*(.*)/);
+
+      result = {
+        title: titleMatch[1].trim(),
+        description: descriptionMatch[1].trim(),
+      };
+    } catch (error) {
+      console.warn(
+        `Error generating metadata (Attempt ${attempts + 1}):`,
+        error,
+      );
+    }
+    attempts++;
+  }
+  return result;
+};
 
 const generateMetadata = async (text, filename) => {
   if (!process.env.USE_LLM) {
@@ -28,33 +58,7 @@ const generateMetadata = async (text, filename) => {
     Description: [Generated Description]
   `;
 
-  let result = null;
-  let attempts = 0;
-
-  while (!result && attempts < 5) {
-    try {
-      const response = await ollama.chat({
-        model: 'llama3.2',
-        messages: [{ role: 'user', content: prompt }],
-      });
-
-      const output = response.message.content;
-      const titleMatch = output.match(/Title:\s*(.*)/);
-      const descriptionMatch = output.match(/Description:\s*(.*)/);
-
-      result = {
-        title: titleMatch[1].trim(),
-        description: descriptionMatch[1].trim(),
-      };
-    } catch (error) {
-      console.warn(
-        `Error generating metadata (Attempt ${attempts + 1}):`,
-        error,
-      );
-    }
-    attempts++;
-    console.log(result);
-  }
+  const result = await query(prompt);
 
   return (
     result || { title: 'Untitled', description: 'No description available.' }
@@ -62,12 +66,17 @@ const generateMetadata = async (text, filename) => {
 };
 
 const extractArticle = (text) => {
+  if (!process.env.USE_LLM) {
+    return text;
+  }
   const prompt = `You are an assistant that extracts article text from a transcript.
   Given an article, extract and return just the article text in it's full form without possible transcription errors.
 
   Article:
   ${text}
 `;
+  const result = query(prompt);
+  return result;
 };
 
-module.exports = { generateMetadata };
+module.exports = { generateMetadata, extractArticle };

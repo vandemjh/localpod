@@ -7,8 +7,9 @@ const { feedService } = require('./service/feed');
 const { generateMetadata } = require('./service/editor');
 
 const upload = multer({ dest: 'uploads/' });
-
 const router = express.Router();
+
+const getHostname = require('./service/host');
 
 // TODO
 const articles = {};
@@ -38,9 +39,9 @@ router.post('/', upload.single('pdf'), async (req, res) => {
 
   const item = {
     ...metadata,
-    url: `http://localhost:3000/articles/${id}`,
+    url: `${getHostname()}/articles/${id}`,
     enclosure: {
-      url: `http://localhost:3000/audio/${id}.mp3`,
+      url: `${getHostname()}/audio/${id}.mp3`,
       type: 'audio/mpeg',
     },
     date: new Date(),
