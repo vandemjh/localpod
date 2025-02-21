@@ -14,7 +14,7 @@ const getFeed = () => {
 
 const saveFeed = (feed) => {
   try {
-    fs.writeFileSync(fileName, JSON.stringify(feed, null, 2), 'utf8');
+    fs.writeFileSync(fileName, JSON.stringify(feed), 'utf8');
   } catch (e) {
     console.error('Error saving feed file:', e);
   }

@@ -10,6 +10,7 @@ const upload = multer({ dest: 'uploads/' });
 
 const router = express.Router();
 
+// TODO
 const articles = {};
 
 router.get('/', express.static('src/public'));
@@ -22,7 +23,7 @@ router.post('/', upload.single('pdf'), async (req, res) => {
 
   const dataBuffer = fs.readFileSync(req.file.path);
   const pdfData = await pdfParse(dataBuffer);
-  const metadata = await generateMetadata(pdfData.text);
+  const metadata = await generateMetadata(pdfData.text, req.file.filename);
 
   fs.unlinkSync(req.file.path);
 
