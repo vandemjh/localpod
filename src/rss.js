@@ -1,7 +1,7 @@
 const express = require('express');
 const RSS = require('rss');
 const { feedService } = require('./service/feed');
-const { getHostname } = require('./service/host');
+const { getHostname, getFullURL } = require('./service/host');
 
 const router = express.Router();
 
@@ -11,6 +11,7 @@ router.get('/', (req, res) => {
     description: 'RSS feed of uploaded PDF transcriptions with audio',
     feed_url: `${getHostname()}/rss`,
     site_url: `${getHostname()}`,
+    image_url: `${getFullURL()}/localcast.png`
   });
 
   feedService.getFeed().forEach((item) => feed.item(item));
