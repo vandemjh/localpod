@@ -7,8 +7,8 @@ let musicMetadata;
 (async () => {
   musicMetadata = await import('music-metadata');
 })();
-const { feedService } = require('./service/feed');
-const { generateMetadata } = require('./service/ai');
+const { feedService } = require('../service/feed');
+const { generateMetadata } = require('../service/ai');
 
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();

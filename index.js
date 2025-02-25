@@ -1,9 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 
-const { upload } = require('./src/upload');
+const { upload } = require('./src/routes/upload');
 const { rss } = require('./src/rss');
-const { audio } = require('./src/audio');
+const { audio } = require('./src/routes/audio');
 const { getHostname, getPort, getFullURL } = require('./src/service/host');
 
 const app = express();
