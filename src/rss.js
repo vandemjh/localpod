@@ -9,12 +9,22 @@ router.get('/', (req, res) => {
   const feed = new RSS({
     title: 'PDF Transcriptions',
     description: 'RSS feed of uploaded PDF transcriptions with audio',
-    feed_url: `${getHostname()}/rss`,
-    site_url: `${getHostname()}`,
-    image_url: `${getFullURL()}/localcast.png`
+    feed_url: `${getFullURL()}/rss`,
+    site_url: `${getFullURL()}`,
+    image_url: `${getFullURL()}/localcast.png`,
+    categories: ['news'],
+    ttl: 30,
   });
 
-  feedService.getFeed().forEach((item) => feed.item(item));
+  feedService.getFeed().forEach((item) =>
+    feed.item({
+      ...item,
+      enclosure: {
+        ...item.enclosure,
+        url: `${getFullURL()}${item.enclosure.url}`,
+      },
+    }),
+  );
 
   res.set('Content-Type', 'application/xml');
   res.send(feed.xml());

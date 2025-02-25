@@ -5,6 +5,8 @@ const getHostname = () => hostname;
 
 const getPort = () => process.env.PORT || 3000
 
-const getFullURL = () => `${getHostname()}:${getPort()}`
+const getProto = () => process.env.PROTO || 'http'
 
-module.exports = { getHostname, getPort, getFullURL };
+const getFullURL = () => `${getProto()}://${getHostname()}` // :${getPort()}`
+
+module.exports = { getHostname, getPort, getFullURL, getProto };
