@@ -31,7 +31,6 @@ const query = async (prompt) => {
     }
     attempts++;
   }
-  console.log(result)
   return result;
 };
 
