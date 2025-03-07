@@ -9,14 +9,20 @@ const router = express.Router();
 router.use('/', express.static('src/public'));
 
 router.post('/', upload.single('pdf'), async (req, res) => {
-  if (!req.file) return res.status(400).send('No file uploaded');
+  const { articleLink } = req.body;
+  const { file } = req;
+  if (!file && !articleLink) {
+    return res.status(400).send('No file or article link provided');
+  }
 
-  logger.log(`Recieved ${req.file.filename}`);
+  if (file) logger.log(`Recieved file ${req.file.filename}`);
+  if (articleLink)
+    logger.log(`Recieved articleLink ${articleLink.substring(0, 10)}...`);
 
   res.redirect('/rss');
   // Server renders info...
 
-  process(req);
+  process(file, articleLink);
 });
 
 module.exports = { upload: router };

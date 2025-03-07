@@ -1,9 +1,9 @@
-const pdfParse = require('pdf-parse');
 const fs = require('fs');
 const { logger } = require('./logger');
 const { feedService } = require('./feed');
 const { generateMetadata, cleanArticle } = require('./ai');
 const { speak } = require('./tts');
+const { extractArticleFromPDF, extractArticleFromURL } = require('./extract');
 
 const toRemove = [
   /SHARE AS GIFT/g, // Atlantic share with
@@ -16,11 +16,16 @@ let musicMetadata;
   musicMetadata = await import('music-metadata');
 })();
 
-const process = async (req) => {
-  const dataBuffer = fs.readFileSync(req.file.path);
-  fs.unlinkSync(req.file.path);
-  const filename = req.file.filename;
-  let { text } = await pdfParse(dataBuffer);
+const process = async (file, articleLink) => {
+  const isPdf = !!file;
+  let filename;
+  let text;
+  if (file) {
+    ({ text, filename } = await extractArticleFromPDF(file));
+  }
+  if (articleLink) {
+    ({ text, filename } = await extractArticleFromURL(articleLink));
+  }
 
   logger.log(
     `Parsed text of size: ${text.length} with ${text.split('\n').length} lines`,
@@ -34,11 +39,10 @@ const process = async (req) => {
   logger.log(`Cleaned with regex to size: ${text.length}`);
 
   // Clean article of OCR errors, etc
-  text = await cleanArticle(text);
-
-  fs.writeFileSync('text.txt', text);
-
-  logger.log(`Cleaned to size: ${text.length}`);
+  if (isPdf) {
+    text = await cleanArticle(text);
+    logger.log(`Cleaned to size: ${text.length}`);
+  }
 
   // Fire up those cores!
   const [metadata, audioPath] = await Promise.all([

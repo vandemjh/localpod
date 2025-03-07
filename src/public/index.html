@@ -1,9 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Upload a PDF</title>
+    <title>Upload a PDF or Paste a Link</title>
     <style>
       * {
         box-sizing: border-box;
@@ -23,24 +23,29 @@
         color: #333;
       }
 
-      .upload-container {
+      form {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 15px;
+      }
+
+      .upload-box,
+      .input-box {
+        width: 100%;
+        max-width: 400px;
+        padding: 15px;
+        border: 2px solid #aaa;
+        background-color: white;
+        border-radius: 10px;
+        text-align: center;
+        transition: 0.3s;
       }
 
       .upload-box {
-        width: 100%;
-        max-width: 400px;
         height: 150px;
-        padding: 20px;
-        border: 2px dashed #aaa;
-        background-color: white;
-        border-radius: 10px;
         cursor: pointer;
-        text-align: center;
-        transition: 0.3s;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -51,17 +56,20 @@
         border-color: #007bff;
       }
 
+      .input-box input {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        font-size: 16px;
+        text-align: center;
+        outline: none;
+      }
+
       input[type='file'] {
         display: none;
       }
 
-      .upload-text {
-        color: #555;
-        font-size: 16px;
-      }
-
       button {
-        margin-top: 15px;
         padding: 12px 20px;
         font-size: 16px;
         background-color: #007bff;
@@ -79,7 +87,6 @@
       }
 
       #filename {
-        margin-top: 10px;
         font-size: 14px;
         color: #333;
         font-weight: bold;
@@ -87,7 +94,7 @@
     </style>
   </head>
   <body>
-    <h2>Upload a PDF</h2>
+    <h2>Upload a PDF or Paste a Link</h2>
     <div class="upload-container">
       <form
         id="uploadForm"
@@ -95,6 +102,7 @@
         method="post"
         enctype="multipart/form-data"
       >
+        <!-- Drag & Drop File Upload -->
         <label class="upload-box" id="uploadBox">
           <p class="upload-text">Tap to select, paste, or drag a PDF</p>
           <input
@@ -102,11 +110,21 @@
             id="fileInput"
             name="pdf"
             accept="application/pdf"
-            required
           />
         </label>
         <p id="filename"></p>
-        <button type="submit" id="uploadButton" disabled>Upload</button>
+
+        <h4>Or</h4>
+        <div class="input-box">
+          <input
+            type="url"
+            id="linkInput"
+            name="articleLink"
+            placeholder="Paste article link here"
+          />
+        </div>
+
+        <button type="submit" id="uploadButton" disabled>Submit</button>
       </form>
     </div>
 
@@ -115,11 +133,20 @@
       const uploadBox = document.getElementById('uploadBox');
       const uploadButton = document.getElementById('uploadButton');
       const filenameDisplay = document.getElementById('filename');
+      const linkInput = document.getElementById('linkInput');
+
+      function validateInput() {
+        if (fileInput.files.length > 0 || linkInput.value.trim() !== '') {
+          uploadButton.disabled = false;
+        } else {
+          uploadButton.disabled = true;
+        }
+      }
 
       fileInput.addEventListener('change', (e) => {
         if (e.target.files.length) {
           filenameDisplay.textContent = e.target.files[0].name;
-          uploadButton.disabled = false;
+          validateInput();
         }
       });
 
@@ -133,7 +160,7 @@
               dataTransfer.items.add(file);
               fileInput.files = dataTransfer.files;
               filenameDisplay.textContent = file.name;
-              uploadButton.disabled = false;
+              validateInput();
             }
           }
         }
@@ -156,9 +183,11 @@
         if (file && file.type === 'application/pdf') {
           fileInput.files = event.dataTransfer.files;
           filenameDisplay.textContent = file.name;
-          uploadButton.disabled = false;
+          validateInput();
         }
       });
+
+      linkInput.addEventListener('input', validateInput);
     </script>
   </body>
 </html>

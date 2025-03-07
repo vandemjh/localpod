@@ -28,6 +28,10 @@ const logger = {
     const starter = getStarter();
     console.log(`[${starter}]:`, ...s);
   },
+  error: (...s) => {
+    const starter = getStarter();
+    console.error(`[${starter}]:`, ...s);
+  },
 };
 
 module.exports = { logger };
