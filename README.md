@@ -1,6 +1,7 @@
 # Localpod
 
 ## Dependencies
-* Tailscale
-* Docker
-* Ollama (optional)
+
+- Tailscale
+- Docker
+- Ollama (optional)

@@ -1,47 +1,22 @@
 const ollama = require('ollama').default;
+const { logger } = require('./logger');
+const os = require('os');
 
 const TEXT_CUTOFF = 1_000;
 const RETRIES = 5;
 
 /** @typedef {{ title: string, description: string }} Metadata */
 
-const query = async (prompt) => {
-  let result = null;
-  let attempts = RETRIES;
-  while (!result && attempts < 5) {
-    try {
-      const response = await ollama.chat({
-        model: 'llama3.2',
-        messages: [{ role: 'user', content: prompt }],
-      });
-
-      const output = response.message.content;
-      const titleMatch = output.match(/Title:\s*(.*)/);
-      const descriptionMatch = output.match(/Description:\s*(.*)/);
-
-      result = {
-        title: titleMatch[1].trim(),
-        description: descriptionMatch[1].trim(),
-      };
-    } catch (error) {
-      console.warn(
-        `Error generating metadata (Attempt ${attempts + 1}):`,
-        error,
-      );
-    }
-    attempts++;
-  }
-  return result;
-};
-
 /** @returns {Promise<Metadata>} */
 const generateMetadata = async (text, filename) => {
   if (!process.env.USE_LLM) {
     return {
       title: filename,
-      description: text.substring(0, 1000) + "...",
+      description: text.substring(0, TEXT_CUTOFF) + '...',
     };
   }
+  logger.log(`Generating metadata for text of length: ${text.length}`);
+
   let cutoff = false;
   if (text.length >= TEXT_CUTOFF) {
     cutoff = true;
@@ -52,35 +27,82 @@ const generateMetadata = async (text, filename) => {
     Given an article${cutoff ? ' which has been truncated' : ''}, generate:
     1. A short but engaging title.
     2. A 2-3 sentence description summarizing the article.
+    3. The article's author (if possible).
 
     Article:
-    ${text}
+    ${text}`;
 
-    Format your response as:
-    Title: [Generated Title]
-    Description: [Generated Description]
-  `;
+  const prev = new Date();
+  const response = await ollama.chat({
+    model: 'llama3.2',
+    messages: [{ role: 'user', content: prompt }],
+    format: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+        },
+        description: {
+          type: 'string',
+        },
+        author: {
+          type: 'string',
+        },
+      },
+      required: ['title', 'description'],
+    },
+  });
 
-  const result = await query(prompt);
+  logger.log(`Metadata query took: ${(new Date() - prev) / 1000} seconds`);
 
-  return (
-    result || { title: 'Untitled', description: 'No description available.' }
-  );
+  return JSON.parse(response.message.content);
 };
 
-/** @returns {Promise<Metadata>} */
-const extractArticle = async (text) => {
+const NUMBER_OF_CHARS = 5_000;
+
+const cleanArticle = async (text) => {
   if (!process.env.USE_LLM) {
     return text;
   }
-  const prompt = `You are an assistant that extracts article text from a transcript.
-  Given an article, extract and return just the article text in it's full form without possible transcription errors.
+  text = text.replaceAll(os.EOL, ' ');
+  const split = text.split('.');
+  const toPrompt = [];
+  let temp = '';
+  for (const i of split) {
+    if (temp.length + i.length < NUMBER_OF_CHARS) {
+      temp += i + '.';
+    } else {
+      toPrompt.push(temp);
+      temp = '';
+    }
+  }
+  toPrompt.push(temp);
 
-  Article:
-  ${text}
+  logger.debug(`Cleaning article in ${toPrompt.length} parts`);
+
+  const ask = async (i) => {
+    const prompt = `You are a text-cleaning assistant. Your job is to remove unwanted artifacts while keeping the full article text intact. Given an article snippet (max ${NUMBER_OF_CHARS} characters) return the cleaned text following these rules:
+    
+    ### **Rules:**
+- **Remove:** URLs, timestamps, headers, footers, section headings like "RECOMMENDED READING."
+- **Fix:** OCR errors (e.g., "e" → "The").
+- **DO NOT:** Summarize, rewrite, or shorten the content. Keep the original text as it is as much as possible.
+
+Return ONLY the cleaned article. No other commentary.
+
+### **Article:**
+${i}
 `;
-  const result = await query(prompt);
-  return result;
+    const response = await ollama.chat({
+      model: 'llama3.2',
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    return response.message.content;
+  };
+
+  const promises = toPrompt.map((i) => ask(i));
+  return (await Promise.all(promises)).join(' ');
 };
 
-module.exports = { generateMetadata, extractArticle };
+module.exports = { generateMetadata, cleanArticle };

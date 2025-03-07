@@ -1,6 +1,10 @@
-const { KokoroTTS } = require('kokoro-js');
+const { KokoroTTS, TextSplitterStream } = require('kokoro-js');
+const ffmpeg = require('fluent-ffmpeg');
+const fs = require('fs');
+const { logger } = require('../logger');
 
 const model_id = 'onnx-community/Kokoro-82M-v1.0-ONNX';
+/** @type {KokoroTTS} */
 let tts;
 (async () => {
   tts = await KokoroTTS.from_pretrained(model_id, {
@@ -9,14 +13,67 @@ let tts;
   });
 })();
 
+/** @param {string} text, @param {string} filename */
 const speak = async (text, filename) => {
-  const audioPath = `./uploads/${filename}.wav`
-  const audio = await tts.generate(text, {
-    // Use `tts.list_voices()` to list all available voices
+  const audioPath = `./uploads/${filename}.wav`;
+  // First, set up the stream
+  const splitter = new TextSplitterStream();
+  const stream = tts.stream(splitter, {
     voice: 'af_alloy',
+    speed: 1,
+    // splitPattern
   });
-  await audio.save(audioPath);
+
+  const tokens = text.match(/\s*\S+/g);
+  // const tokens = text.split('\n').filter(Boolean);
+  for (const token of tokens) {
+    if (token.includes('https://')) continue; // The stream breaks on links
+    splitter.push(' ' + token.trim());
+  }
+  logger.log(`Added ${tokens.length} tokens`);
+  splitter.close();
+
+  let i = 0;
+  const paths = [];
+  for await (const { audio } of stream) {
+    const path = `${audioPath}-${i++}.wav`;
+    paths.push(path);
+    audio.save(path);
+    logger.log(`TTS saved to ${path}`);
+  }
+  logger.log(`Completed stream`);
+
+  await concatWavFiles(paths, audioPath);
   return audioPath;
+};
+
+/** @param {string[]} inputFiles */
+const concatWavFiles = async (inputFiles, outputFile) => {
+  logger.log(`Concatenating ${inputFiles.length} files`);
+  if (inputFiles.length === 0) {
+    console.error('No input files provided.');
+    return;
+  }
+
+  let op = ffmpeg();
+
+  inputFiles.forEach((i) => op.addInput(i));
+
+  await new Promise((res, rej) => {
+    op.on('end', () => {
+      logger.log(`Concatenation complete: ${outputFile}`);
+      res(outputFile);
+    })
+      .on('error', (err) => {
+        console.error('Error:', err);
+        rej(err);
+      })
+      .mergeToFile(outputFile);
+  });
+
+  // Remove temp files, fails for the async function maybe because inputFiles is garbage collected
+  inputFiles.forEach((i) => fs.rmSync(i));
+  logger.log(`Removed ${inputFiles.length} files`);
 };
 
 module.exports = { speak };
