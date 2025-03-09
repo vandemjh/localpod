@@ -1,16 +1,20 @@
 const { logger } = require('./logger');
 const pdfParse = require('pdf-parse');
 const fs = require('fs');
+const os = require('os');
 
 const puppeteer = require('puppeteer');
 
 const TIMEOUT = 5_000;
 
-/** @typedef {{ text: string, title: string }} Article */
+/** @typedef {{ paragraphs: string[], title: string }} Article */
 
-const saveArticle = (text, filename) => {
+const saveArticle = (text, f) => {
   if (!process.env.DEBUG) return;
-  return fs.writeFile(`./articles/${filename}.txt`, text);
+  const filename = `./articles/${f}.txt`;
+  return fs.writeFile(filename, text, () => {
+    logger.log(`Saved to ${filename}`);
+  });
 };
 
 /** @returns {Promise<Article>} */
@@ -26,32 +30,42 @@ const extractArticleFromURL = async (url, filename) => {
   await page.waitForSelector('article p', { timeout: TIMEOUT });
 
   // <p> text inside <article>
-  const textPromise = page.evaluate(() =>
-    Array.from(document.querySelectorAll('article p'))
-      .map((p) => p.textContent.trim().replaceAll(/\s+/g, ' '))
-      .join('\n'),
+  const pTagPromise = page.evaluate(() =>
+    Array.from(document.querySelectorAll('article p')).map((p) => {
+      const attributeNames = p.getAttributeNames();
+      const pAttributes = {};
+      attributeNames.forEach((i) => (pAttributes[i] = p.getAttribute(i)));
+      pAttributes.textContent = p.textContent;
+      return pAttributes;
+    }),
   );
   const titlePromise = page.title();
 
-  let [text, title] = await Promise.all([textPromise, titlePromise]);
+  const [pTags, title] = await Promise.all([pTagPromise, titlePromise]);
 
-  logger.log(
-    `Retrieved article of size ${text.length}: ${title.substring(0, 10)}...`,
+  const paragraphs = pTags.map((i) =>
+    i.textContent.trim().replaceAll(/\s+/g, ' '),
   );
+
+  const text = paragraphs.join('\n');
+
+  logger.log(`Retrieved article with ${paragraphs.length} paragraphs`);
   saveArticle(text, filename);
   await browser.close();
-  return { text, title };
+  return { paragraphs, title };
 };
 
 /** @returns {Promise<Article>} */
-const extractArticleFromPDF = async (file) => {
+const extractArticleFromPDF = async (file, filename) => {
   const dataBuffer = fs.readFileSync(file.path);
   fs.unlinkSync(file.path);
   const title = file.title;
   let { text } = await pdfParse(dataBuffer);
 
+  const paragraphs = text.split(os.EOL + os.EOL).filter(Boolean);
+
   saveArticle(text, filename);
-  return { text, title };
+  return { paragraphs, title };
 };
 
 module.exports = { extractArticleFromURL, extractArticleFromPDF, saveArticle };

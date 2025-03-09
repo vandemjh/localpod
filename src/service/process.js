@@ -3,14 +3,20 @@ const { logger } = require('./logger');
 const { feedService } = require('./feed');
 const { generateMetadata, cleanArticle } = require('./ai');
 const { speak } = require('./tts');
-const { extractArticleFromPDF, extractArticleFromURL, saveArticle } = require('./extract');
+const {
+  extractArticleFromPDF,
+  extractArticleFromURL,
+  saveArticle,
+} = require('./extract');
 const { randomUUID } = require('crypto');
 
-const toRemove = [
+const toRemoveAny = [
   /SHARE AS GIFT/g, // Atlantic share with
   /RECOMMENDED READING/g, // Atlantic reccomended reading
   /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g, // URLs
 ];
+
+const toRemoveFull = [/Advertisement/g, /Supported by/g, /COLLAPSE/g];
 
 let musicMetadata;
 (async () => {
@@ -20,20 +26,33 @@ let musicMetadata;
 const process = async (file, articleLink) => {
   const isPdf = !!file;
   const filename = randomUUID();
-  let text;
+  let paragraphs;
   if (file) {
-    ({ text, title } = await extractArticleFromPDF(file));
+    ({ paragraphs, title } = await extractArticleFromPDF(file, filename));
   }
   if (articleLink) {
-    ({ text, title } = await extractArticleFromURL(articleLink));
+    ({ paragraphs, title } = await extractArticleFromURL(
+      articleLink,
+      filename,
+    ));
   }
+
+  paragraphs = paragraphs.filter(
+    (str) =>
+      !toRemoveFull.some((regex) => {
+        regex.lastIndex = 0;
+        return regex.test(str);
+      }),
+  );
+
+  let text = paragraphs.join('\n');
 
   logger.log(
     `Parsed text of size: ${text.length} with ${text.split('\n').length} lines`,
   );
 
   // Remove toRemove regex
-  for (const i of toRemove) {
+  for (const i of toRemoveAny) {
     text = text.replaceAll(i, '');
   }
 

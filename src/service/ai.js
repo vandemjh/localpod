@@ -64,7 +64,7 @@ const cleanArticle = async (text) => {
     return text;
   }
   text = text.replaceAll(os.EOL, ' ');
-  const split = text.split('.');
+  const split = text.split('.'); // Split to sentences
   const toPrompt = [];
   let temp = '';
   for (const i of split) {
