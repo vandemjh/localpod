@@ -3,7 +3,6 @@ const { logger } = require('./logger');
 const os = require('os');
 
 const TEXT_CUTOFF = 1_000;
-const RETRIES = 5;
 
 /** @typedef {{ title: string, description: string }} Metadata */
 

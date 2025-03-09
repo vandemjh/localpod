@@ -146,3 +146,4 @@ dist
 uploads/*
 feed.json
 train/
+articles/

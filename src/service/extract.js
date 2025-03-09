@@ -1,5 +1,6 @@
 const { logger } = require('./logger');
 const pdfParse = require('pdf-parse');
+const fs = require('fs');
 
 const puppeteer = require('puppeteer');
 
@@ -7,8 +8,13 @@ const TIMEOUT = 5_000;
 
 /** @typedef {{ text: string, title: string }} Article */
 
+const saveArticle = (text, filename) => {
+  if (!process.env.DEBUG) return;
+  return fs.writeFile(`./articles/${filename}.txt`, text);
+};
+
 /** @returns {Promise<Article>} */
-const extractArticleFromURL = async (url) => {
+const extractArticleFromURL = async (url, filename) => {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
@@ -29,7 +35,10 @@ const extractArticleFromURL = async (url) => {
 
   let [text, title] = await Promise.all([textPromise, titlePromise]);
 
-  logger.log(`Retrieved article of size ${text.length}: ${title.substring(0, 10)}`);
+  logger.log(
+    `Retrieved article of size ${text.length}: ${title.substring(0, 10)}...`,
+  );
+  saveArticle(text, filename);
   await browser.close();
   return { text, title };
 };
@@ -41,7 +50,8 @@ const extractArticleFromPDF = async (file) => {
   const title = file.title;
   let { text } = await pdfParse(dataBuffer);
 
+  saveArticle(text, filename);
   return { text, title };
 };
 
-module.exports = { extractArticleFromURL, extractArticleFromPDF };
+module.exports = { extractArticleFromURL, extractArticleFromPDF, saveArticle };

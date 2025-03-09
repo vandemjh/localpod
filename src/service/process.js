@@ -3,7 +3,7 @@ const { logger } = require('./logger');
 const { feedService } = require('./feed');
 const { generateMetadata, cleanArticle } = require('./ai');
 const { speak } = require('./tts');
-const { extractArticleFromPDF, extractArticleFromURL } = require('./extract');
+const { extractArticleFromPDF, extractArticleFromURL, saveArticle } = require('./extract');
 const { randomUUID } = require('crypto');
 
 const toRemove = [
@@ -44,6 +44,7 @@ const process = async (file, articleLink) => {
     text = await cleanArticle(text);
     logger.log(`Cleaned to size: ${text.length}`);
   }
+  saveArticle(text, `${filename}-cleaned`);
 
   // Fire up those cores!
   const [metadata, audioPath] = await Promise.all([
