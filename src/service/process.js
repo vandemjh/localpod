@@ -4,6 +4,7 @@ const { feedService } = require('./feed');
 const { generateMetadata, cleanArticle } = require('./ai');
 const { speak } = require('./tts');
 const { extractArticleFromPDF, extractArticleFromURL } = require('./extract');
+const { randomUUID } = require('crypto');
 
 const toRemove = [
   /SHARE AS GIFT/g, // Atlantic share with
@@ -18,13 +19,13 @@ let musicMetadata;
 
 const process = async (file, articleLink) => {
   const isPdf = !!file;
-  let filename;
+  const filename = randomUUID();
   let text;
   if (file) {
-    ({ text, filename } = await extractArticleFromPDF(file));
+    ({ text, title } = await extractArticleFromPDF(file));
   }
   if (articleLink) {
-    ({ text, filename } = await extractArticleFromURL(articleLink));
+    ({ text, title } = await extractArticleFromURL(articleLink));
   }
 
   logger.log(
@@ -46,7 +47,7 @@ const process = async (file, articleLink) => {
 
   // Fire up those cores!
   const [metadata, audioPath] = await Promise.all([
-    generateMetadata(text, filename),
+    generateMetadata(text, title),
     speak(text, filename),
   ]);
 

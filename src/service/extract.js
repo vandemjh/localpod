@@ -5,7 +5,7 @@ const puppeteer = require('puppeteer');
 
 const TIMEOUT = 5_000;
 
-/** @typedef {{ text: string, filename: string }} Article */
+/** @typedef {{ text: string, title: string }} Article */
 
 /** @returns {Promise<Article>} */
 const extractArticleFromURL = async (url) => {
@@ -25,26 +25,23 @@ const extractArticleFromURL = async (url) => {
       .map((p) => p.textContent.trim().replaceAll(/\s+/g, ' '))
       .join('\n'),
   );
-  const filenamePromise = page.title();
+  const titlePromise = page.title();
 
-  let [text, filename] = await Promise.all([textPromise, filenamePromise]);
-  filename = filename.toLowerCase();
-  filename = filename.replaceAll(/[^a-z0-9]/gi, '');
-  filename = filename.replaceAll(/\s+/gi, '-');
+  let [text, title] = await Promise.all([textPromise, titlePromise]);
 
-  logger.log(`Retrieved article of size ${text.length}: ${filename.substring(0, 10)}`);
+  logger.log(`Retrieved article of size ${text.length}: ${title.substring(0, 10)}`);
   await browser.close();
-  return { text, filename };
+  return { text, title };
 };
 
 /** @returns {Promise<Article>} */
 const extractArticleFromPDF = async (file) => {
   const dataBuffer = fs.readFileSync(file.path);
   fs.unlinkSync(file.path);
-  const filename = file.filename;
+  const title = file.title;
   let { text } = await pdfParse(dataBuffer);
 
-  return { text, filename };
+  return { text, title };
 };
 
 module.exports = { extractArticleFromURL, extractArticleFromPDF };

@@ -8,10 +8,10 @@ const RETRIES = 5;
 /** @typedef {{ title: string, description: string }} Metadata */
 
 /** @returns {Promise<Metadata>} */
-const generateMetadata = async (text, filename) => {
+const generateMetadata = async (text, title) => {
   if (!process.env.USE_LLM) {
     return {
-      title: filename,
+      title,
       description: text.substring(0, TEXT_CUTOFF) + '...',
     };
   }
@@ -84,15 +84,15 @@ const cleanArticle = async (text) => {
     const prompt = `You are a text-cleaning assistant. Your job is to remove unwanted artifacts while keeping the full article text intact. Given an article snippet (max ${NUMBER_OF_CHARS} characters) return the cleaned text following these rules:
     
     ### **Rules:**
-- **Remove:** URLs, timestamps, headers, footers, section headings like "RECOMMENDED READING."
-- **Fix:** OCR errors (e.g., "e" → "The").
-- **DO NOT:** Summarize, rewrite, or shorten the content. Keep the original text as it is as much as possible.
+    - **Remove:** URLs, timestamps, headers, footers, section headings like "RECOMMENDED READING."
+    - **Fix:** OCR errors (e.g., "e" → "The").
+    - **DO NOT:** Summarize, rewrite, or shorten the content. Keep the original text as it is as much as possible.
 
-Return ONLY the cleaned article. No other commentary.
+    Return ONLY the cleaned article. No other commentary.
 
-### **Article:**
-${i}
-`;
+    ### **Article:**
+    ${i}`;
+
     const response = await ollama.chat({
       model: 'llama3.2',
       messages: [{ role: 'user', content: prompt }],
