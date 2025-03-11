@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    platform: linux/x86_64
+    ports:
+      - '56225:56225'
+    volumes:
+      - .:/app
+    environment:
+      - NODE_ENV=production
+
+  ollama:
+    image: ollama/ollama
+    platform: linux/x86_64
+    profiles:
+      - ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - '11434:11434'
+
+volumes:
+  ollama_data:

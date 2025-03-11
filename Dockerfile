@@ -1,4 +1,8 @@
-FROM node:20-alpine
+FROM node:20-slim
+
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    chromium;
 
 WORKDIR /app
 
@@ -8,6 +12,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 3000
+EXPOSE 56225
 
 CMD ["node", "."]

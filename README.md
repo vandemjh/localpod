@@ -2,6 +2,5 @@
 
 ## Dependencies
 
-- Tailscale
 - Docker
 - Ollama (optional)

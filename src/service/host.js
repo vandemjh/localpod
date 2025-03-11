@@ -1,10 +1,8 @@
-const { execSync } = require('child_process');
+const hostname = process.env.LOCALCPOD_HOSTNAME || 'localhost';
 
-const hostname =
-  process.env.HOSTNAME || execSync(`tailscale ip -4`).toString().trim();
 const getHostname = () => hostname;
 
-const getPort = () => process.env.PORT || 3000;
+const getPort = () => process.env.PORT || 56225;
 
 const getProto = () => process.env.PROTO || 'http';
 
