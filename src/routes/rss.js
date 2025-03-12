@@ -1,7 +1,7 @@
 const express = require('express');
 const RSS = require('rss');
 const { feedService } = require('../service/feed');
-const { getFullURL } = require('../service/host');
+const { getFullURL, getProto, getHostname } = require('../service/host');
 
 const router = express.Router();
 
@@ -17,11 +17,12 @@ router.get('/', (req, res) => {
   });
 
   feedService.getFeed().forEach((item) =>
+    // @ts-ignore
     feed.item({
       ...item,
       enclosure: {
         ...item.enclosure,
-        url: `${getFullURL()}/${item.enclosure.url}`,
+        url: `${getProto()}://${getHostname()}/${item.enclosure.url}`,
       },
     }),
   );

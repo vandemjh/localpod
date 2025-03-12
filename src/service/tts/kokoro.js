@@ -53,7 +53,7 @@ const speak = async (text, filename) => {
 const concatWavFiles = async (inputFiles, outputFile) => {
   logger.log(`Concatenating ${inputFiles.length} files`);
   if (inputFiles.length === 0) {
-    console.error('No input files provided.');
+    logger.error('No input files provided.');
     return;
   }
 
@@ -63,11 +63,11 @@ const concatWavFiles = async (inputFiles, outputFile) => {
 
   await new Promise((res, rej) => {
     op.on('end', () => {
-      console.log(`Concatenation complete: ${outputFile}`);
+      logger.log(`Concatenation complete: ${outputFile}`);
       res(outputFile);
     })
       .on('error', (err) => {
-        console.error('Error:', err);
+        logger.error('Error:', err);
         rej(err);
       })
       .mergeToFile(outputFile, `./uploads`);

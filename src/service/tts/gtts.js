@@ -1,4 +1,5 @@
 const gTTS = require('gtts');
+const { logger } = require('../logger');
 
 const speak = async (text, filename) => {
   const tts = new gTTS(text, 'en');
@@ -6,7 +7,7 @@ const speak = async (text, filename) => {
   return new Promise((res, rej) => {
     tts.save(audioPath, (err) => {
       if (err) {
-        console.error('Error generating TTS:', err);
+        logger.error('Error generating TTS:', err);
         rej(err);
       }
       res(audioPath);

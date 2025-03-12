@@ -43,9 +43,9 @@ const extractArticleFromURL = async (url, filename) => {
 
   const [pTags, title] = await Promise.all([pTagPromise, titlePromise]);
 
-  const paragraphs = pTags.map((i) =>
-    i.textContent?.trim().replaceAll(/\s+/g, ' ') || '',
-  ).filter(Boolean);
+  const paragraphs = pTags
+    .map((i) => i.textContent?.trim().replaceAll(/\s+/g, ' ') || '')
+    .filter(Boolean);
 
   const text = paragraphs.join('\n');
 
