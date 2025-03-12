@@ -15,9 +15,9 @@ router.post('/', upload.single('pdf'), async (req, res) => {
     return res.status(400).send('No file or article link provided');
   }
 
-  if (file) logger.log(`Recieved file ${req.file.filename}`);
+  if (file) logger.log(`Recieved file ${req.file?.filename}`);
   if (articleLink)
-    logger.log(`Recieved articleLink ${articleLink.substring(0, 10)}...`);
+    logger.log(`Recieved articleLink ${articleLink.substring(0, 20)}...`);
 
   res.redirect('/rss');
   // Server renders info...

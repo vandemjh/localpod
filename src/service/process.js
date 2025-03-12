@@ -27,6 +27,7 @@ const process = async (file, articleLink) => {
   const isPdf = !!file;
   const filename = randomUUID();
   let paragraphs;
+  let title;
   if (file) {
     ({ paragraphs, title } = await extractArticleFromPDF(file, filename));
   }

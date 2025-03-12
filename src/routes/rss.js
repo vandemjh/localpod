@@ -21,7 +21,7 @@ router.get('/', (req, res) => {
       ...item,
       enclosure: {
         ...item.enclosure,
-        url: `${getFullURL()}${item.enclosure.url}`,
+        url: `${getFullURL()}/${item.enclosure.url}`,
       },
     }),
   );

@@ -3,9 +3,8 @@ const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs');
 const { logger } = require('../logger');
 
-const AUDIO_FOLDER = './uploads';
-
 const model_id = 'onnx-community/Kokoro-82M-v1.0-ONNX';
+
 /** @type {KokoroTTS} */
 let tts;
 (async () => {
@@ -17,7 +16,7 @@ let tts;
 
 /** @param {string} text, @param {string} filename */
 const speak = async (text, filename) => {
-  const audioPath = `${AUDIO_FOLDER}/${filename}.wav`;
+  const audioPath = `uploads/${filename}.wav`;
   // First, set up the stream
   const splitter = new TextSplitterStream();
   const stream = tts.stream(splitter, {
@@ -39,14 +38,14 @@ const speak = async (text, filename) => {
   let i = 0;
   const paths = [];
   for await (const { audio } of stream) {
-    const path = `${audioPath}-${i++}.wav`;
+    const path = `./${audioPath}-${i++}.wav`;
     paths.push(path);
     audio.save(path);
     logger.log(`TTS saved to ${path}`);
   }
   logger.log(`Completed stream`);
 
-  await concatWavFiles(paths, audioPath);
+  await concatWavFiles(paths, `./${audioPath}`);
   return audioPath;
 };
 
@@ -71,7 +70,7 @@ const concatWavFiles = async (inputFiles, outputFile) => {
         console.error('Error:', err);
         rej(err);
       })
-      .mergeToFile(outputFile, `./${AUDIO_FOLDER}`);
+      .mergeToFile(outputFile, `./uploads`);
   });
 
   // Remove temp files, fails for the async function maybe because inputFiles is garbage collected
