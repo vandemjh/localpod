@@ -9,6 +9,7 @@ const {
   saveArticle,
 } = require('./extract');
 const { randomUUID } = require('crypto');
+const { getFullURL } = require('./host');
 
 const toRemoveAny = [
   /SHARE AS GIFT/g, // Atlantic share with
@@ -26,7 +27,7 @@ let musicMetadata;
 const process = async (file, articleLink) => {
   const isPdf = !!file;
   const filename = randomUUID();
-  let paragraphs;
+  let paragraphs = [];
   let title;
   if (file) {
     ({ paragraphs, title } = await extractArticleFromPDF(file, filename));
@@ -77,7 +78,8 @@ const process = async (file, articleLink) => {
   const item = {
     ...metadata,
     enclosure: {
-      url: audioPath,
+      uuid: filename,
+      extension: 'wav',
       type: 'audio/mpeg',
       size: audioData.format.duration,
     },

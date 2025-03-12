@@ -6,6 +6,7 @@ const getPort = () => process.env.PORT || 56225;
 
 const getProto = () => process.env.PROTO || 'http';
 
-const getFullURL = () => `${getProto()}://${getHostname()}:${getPort()}`;
+const getFullURL = () =>
+  new URL(`${getProto()}://${getHostname()}:${getPort()}`).href;
 
 module.exports = { getHostname, getPort, getFullURL, getProto };

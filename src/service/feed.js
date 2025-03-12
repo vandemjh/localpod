@@ -5,8 +5,9 @@ const fileName = './feed.json';
 
 /**
  * @typedef {Object} Enclosure
- * @property {string} url
+ * @property {string} uuid
  * @property {string} type
+ * @property {string} extension
  * @property {number} size
  */
 
@@ -33,7 +34,7 @@ const getFeed = () => {
   }
 };
 
-/** @param {string} feed */
+/** @param {Feed} feed */
 const saveFeed = (feed) => {
   try {
     fs.writeFileSync(fileName, JSON.stringify(feed), 'utf8');

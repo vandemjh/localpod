@@ -3,7 +3,7 @@ const { logger } = require('../logger');
 
 const speak = async (text, filename) => {
   const tts = new gTTS(text, 'en');
-  const audioPath = `./uploads/${filename}.mp3`;
+  const audioPath = `./audio/${filename}.mp3`;
   return new Promise((res, rej) => {
     tts.save(audioPath, (err) => {
       if (err) {

@@ -12,7 +12,8 @@ router.post('/', upload.single('pdf'), async (req, res) => {
   const { articleLink } = req.body;
   const { file } = req;
   if (!file && !articleLink) {
-    return res.status(400).send('No file or article link provided');
+    res.status(400).send('No file or article link provided');
+    return;
   }
 
   if (file) logger.log(`Recieved file ${req.file?.filename}`);

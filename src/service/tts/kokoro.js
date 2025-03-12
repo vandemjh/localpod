@@ -16,7 +16,7 @@ let tts;
 
 /** @param {string} text, @param {string} filename */
 const speak = async (text, filename) => {
-  const audioPath = `uploads/${filename}.wav`;
+  const savePath = `audio/${filename}.wav`;
   // First, set up the stream
   const splitter = new TextSplitterStream();
   const stream = tts.stream(splitter, {
@@ -38,15 +38,15 @@ const speak = async (text, filename) => {
   let i = 0;
   const paths = [];
   for await (const { audio } of stream) {
-    const path = `./${audioPath}-${i++}.wav`;
+    const path = `./${savePath}-${i++}.wav`;
     paths.push(path);
     audio.save(path);
     logger.log(`TTS saved to ${path}`);
   }
   logger.log(`Completed stream`);
 
-  await concatWavFiles(paths, `./${audioPath}`);
-  return audioPath;
+  await concatWavFiles(paths, `./${savePath}`);
+  return savePath;
 };
 
 /** @param {string[]} inputFiles */
@@ -70,7 +70,7 @@ const concatWavFiles = async (inputFiles, outputFile) => {
         logger.error('Error:', err);
         rej(err);
       })
-      .mergeToFile(outputFile, `./uploads`);
+      .mergeToFile(outputFile, `./audio`);
   });
 
   // Remove temp files, fails for the async function maybe because inputFiles is garbage collected
