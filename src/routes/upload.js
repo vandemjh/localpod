@@ -16,9 +16,13 @@ router.post('/', upload.single('pdf'), async (req, res) => {
     return;
   }
 
-  if (file) logger.log(`Recieved file ${req.file?.filename}`);
-  if (articleLink)
-    logger.log(`Recieved articleLink ${articleLink.substring(0, 20)}...`);
+  if (file) {
+    logger.log(`Recieved file ${req.file?.filename}`);
+  }
+  if (articleLink) {
+    const url = new URL(articleLink);
+    logger.log(`Recieved article ${url.host}...`);
+  }
 
   res.redirect('/rss');
   // Server renders info...
