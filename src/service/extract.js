@@ -13,7 +13,7 @@ let articleExtractor;
 
 const saveArticle = (text, f) => {
   if (!process.env.DEBUG) return;
-  const filename = `./articles/${f}.txt`;
+  const filename = `./data/articles/${f}.txt`;
   return fs.writeFile(filename, text, () => {
     logger.log(`Saved to ${filename}`);
   });

@@ -143,7 +143,5 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/node
 
-audio/*
-feed.json
+data/
 train/
-articles/

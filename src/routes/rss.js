@@ -18,7 +18,7 @@ router.get('/', (req, res) => {
     ttl: 30,
     custom_elements: [
       `<itunes:image>${getFullURL()}localcast.png</itunes:image>`,
-      // `<itunes:category>news</itunes:category>`, 
+      // `<itunes:category>news</itunes:category>`,
     ],
   });
 

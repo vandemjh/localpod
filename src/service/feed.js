@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { logger } = require('./logger');
 
-const fileName = './feed.json';
+const fileName = './data/feed.json';
 
 /**
  * @typedef {Object} Enclosure
