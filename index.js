@@ -9,10 +9,10 @@ const { getPort, getFullURL } = require('./src/service/host');
 const { logger } = require('./src/service/logger');
 
 // Create data folders
-if (!fs.existsSync('./data/audio')){
+if (!fs.existsSync('./data/audio')) {
   fs.mkdirSync('./data/audio', { recursive: true });
 }
-if (!fs.existsSync('./data/articles')){
+if (!fs.existsSync('./data/articles')) {
   fs.mkdirSync('./data/articles', { recursive: true });
 }
 
