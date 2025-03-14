@@ -70,7 +70,7 @@ const concatWavFiles = async (inputFiles, outputFile) => {
         logger.error('Error:', err);
         rej(err);
       })
-      .mergeToFile(outputFile, `./audio`);
+      .mergeToFile(outputFile, `./data/audio`);
   });
 
   // Remove temp files, fails for the async function maybe because inputFiles is garbage collected
