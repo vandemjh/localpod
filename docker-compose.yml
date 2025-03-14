@@ -8,8 +8,8 @@ services:
     ports:
       - '56225:56225'
     volumes:
-      - .:/app
-      - /app/node_modules
+      - ./articles:/app/articles
+      - ./audio:/app/audio
     environment:
       - NODE_ENV=production
 
