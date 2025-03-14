@@ -3,11 +3,13 @@ const pdfParse = require('pdf-parse');
 const fs = require('fs');
 const os = require('os');
 
-const puppeteer = require('puppeteer');
+/** @type {import('@extractus/article-extractor')} */
+let articleExtractor;
+(async () => {
+  articleExtractor = await import('@extractus/article-extractor');
+})();
 
-const TIMEOUT = 5_000;
-
-/** @typedef {{ paragraphs: string[], title: string }} Article */
+/** @typedef {{ paragraphs: string[], title: string, metadata?: object }} Article */
 
 const saveArticle = (text, f) => {
   if (!process.env.DEBUG) return;
@@ -19,47 +21,46 @@ const saveArticle = (text, f) => {
 
 /** @returns {Promise<Article>} */
 const extractArticleFromURL = async (url, filename) => {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-
-  await page.setUserAgent(
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+  const articleData = await articleExtractor.extract(
+    url,
+    {},
+    {
+      headers: {
+        'user-agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+      },
+      signal: AbortSignal.timeout(5000),
+    },
   );
-  logger.log(`Requesting article (timeout of ${TIMEOUT})`);
-  await page.goto(url, { waitUntil: 'networkidle2' }); // Ensures JS loads
-  await page.waitForSelector('article p', { timeout: TIMEOUT });
 
-  // <p> text inside <article>
-  const pTagPromise = page.evaluate(() =>
-    Array.from(document.querySelectorAll('article p')).map((p) => {
-      const attributeNames = p.getAttributeNames();
-      const pAttributes = {};
-      attributeNames.forEach((i) => (pAttributes[i] = p.getAttribute(i)));
-      pAttributes.textContent = p.textContent;
-      return pAttributes;
-    }),
-  );
-  const titlePromise = page.title();
+  if (!articleData) throw new Error(`Failed to pull article from: ${url}`);
 
-  const [pTags, title] = await Promise.all([pTagPromise, titlePromise]);
+  const {
+    title,
+    author,
+    content: text,
+    description,
+    image,
+    published,
+  } = articleData;
 
-  const paragraphs = pTags
-    .map((i) => i.textContent?.trim().replaceAll(/\s+/g, ' ') || '')
-    .filter(Boolean);
+  if (!text) throw new Error(`Failed to pull content from: ${url}`);
 
-  const text = paragraphs.join('\n');
+  const paragraphs = text.split(os.EOL + os.EOL).filter(Boolean);
 
-  logger.log(`Retrieved article with ${paragraphs.length} paragraphs`);
+  logger.log(`Retrieved article with ${text.length} paragraphs`);
   saveArticle(text, filename);
-  await browser.close();
-  return { paragraphs, title };
+  return { paragraphs, title: title || filename, metadata: articleData };
 };
 
-/** @returns {Promise<Article>} */
+/**
+ * @param {Express.Multer.File} file
+ * @returns {Promise<Article>}
+ */
 const extractArticleFromPDF = async (file, filename) => {
   const dataBuffer = fs.readFileSync(file.path);
   fs.unlinkSync(file.path);
-  const title = file.title;
+  const title = file.originalname;
   let { text } = await pdfParse(dataBuffer);
 
   const paragraphs = text.split(os.EOL + os.EOL).filter(Boolean);

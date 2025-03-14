@@ -5,6 +5,7 @@ const { getFullURL } = require('../service/host');
 
 const router = express.Router();
 
+// https://help.apple.com/itc/podcasts_connect/#/itcb54353390
 router.get('/', (req, res) => {
   const feed = new RSS({
     title: 'PDF Transcriptions',
@@ -13,7 +14,12 @@ router.get('/', (req, res) => {
     site_url: `${getFullURL()}`,
     image_url: `${getFullURL()}localcast.png`,
     categories: ['news'],
+    language: 'eng',
     ttl: 30,
+    custom_elements: [
+      `<itunes:image>${getFullURL()}localcast.png</itunes:image>`,
+      // `<itunes:category>news</itunes:category>`, 
+    ],
   });
 
   const getUrl = (uuid, extension, audioFolder = './audio') =>

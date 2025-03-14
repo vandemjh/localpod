@@ -9,7 +9,6 @@ const {
   saveArticle,
 } = require('./extract');
 const { randomUUID } = require('crypto');
-const { getFullURL } = require('./host');
 
 const toRemoveAny = [
   /SHARE AS GIFT/g, // Atlantic share with
@@ -29,14 +28,16 @@ const process = async (file, articleLink) => {
   const filename = randomUUID();
   let paragraphs = [];
   let title;
+  let articleMetadata;
   if (file) {
     ({ paragraphs, title } = await extractArticleFromPDF(file, filename));
   }
   if (articleLink) {
-    ({ paragraphs, title } = await extractArticleFromURL(
-      articleLink,
-      filename,
-    ));
+    ({
+      paragraphs,
+      title,
+      metadata: articleMetadata,
+    } = await extractArticleFromURL(articleLink, filename));
   }
 
   paragraphs = paragraphs.filter(
@@ -68,10 +69,12 @@ const process = async (file, articleLink) => {
   saveArticle(text, `${filename}-cleaned`);
 
   // Fire up those cores!
-  const [metadata, audioPath] = await Promise.all([
+  let [metadata, audioPath] = await Promise.all([
     generateMetadata(text, title),
     speak(text, filename),
   ]);
+
+  metadata = { ...metadata, ...articleMetadata };
 
   const audioData = await musicMetadata.parseFile(audioPath);
 
