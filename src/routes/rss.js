@@ -22,7 +22,7 @@ router.get('/', (req, res) => {
     ],
   });
 
-  const getUrl = (uuid, extension, audioFolder = './data/audio') =>
+  const getUrl = (uuid, extension, audioFolder = './audio') =>
     new URL(`${getFullURL()}${audioFolder}/${uuid}.${extension}`).href;
 
   feedService.getFeed().forEach((item) =>
