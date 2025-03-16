@@ -5,9 +5,6 @@ const os = require('os');
 
 /** @type {import('@extractus/article-extractor')} */
 let articleExtractor;
-(async () => {
-  articleExtractor = await import('@extractus/article-extractor');
-})();
 
 /** @typedef {{ paragraphs: string[], title: string, metadata?: object }} Article */
 
@@ -21,6 +18,10 @@ const saveArticle = (text, f) => {
 
 /** @returns {Promise<Article>} */
 const extractArticleFromURL = async (url, filename) => {
+  await (async () => {
+    articleExtractor = await import('@extractus/article-extractor');
+  })();
+  logger.log('Loaded article extractor');
   const articleData = await articleExtractor.extract(
     url,
     {},
