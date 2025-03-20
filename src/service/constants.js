@@ -1,3 +1,4 @@
+require('dotenv').config();
 const hostname = process.env.LOCALCPOD_HOSTNAME || 'localhost';
 
 const getHostname = () => hostname;
@@ -19,4 +20,15 @@ const getFullURL = () => {
   return new URL(url).href;
 };
 
-module.exports = { getHostname, getPort, getFullURL, getProto };
+const NUMBER_OF_CHARS = 5_000;
+const TEXT_CUTOFF = 1_000;
+const MODEL_NAME = 'llama3.2';
+
+const constants = {
+  NUMBER_OF_CHARS,
+  TEXT_CUTOFF,
+  MODEL_NAME,
+  USE_LLM: process.env.USE_LLM,
+};
+
+module.exports = { getHostname, getPort, getFullURL, getProto, constants };

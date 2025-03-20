@@ -5,7 +5,7 @@ const fs = require('fs');
 const { upload } = require('./src/routes/upload');
 const { rss } = require('./src/routes/rss');
 const { audio } = require('./src/routes/audio');
-const { getPort, getFullURL } = require('./src/service/host');
+const { getPort, getFullURL } = require('./src/service/constants');
 const { logger } = require('./src/service/logger');
 
 // Create data folders

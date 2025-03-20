@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { logger } = require('./logger');
 const { feedService } = require('./feed');
-const { generateMetadata, cleanArticle } = require('./ai');
+const { generateMetadata, cleanArticle } = require('./llm');
 const { speak } = require('./tts');
 const {
   extractArticleFromPDF,

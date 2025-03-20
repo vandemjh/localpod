@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tune": "node ./src/scripts/tune.js"
   },
   "author": "",
   "license": "ISC",
@@ -20,5 +21,8 @@
     "ollama": "^0.5.13",
     "pdf-parse": "^1.1.1",
     "rss": "^1.2.2"
+  },
+  "devDependencies": {
+    "fast-levenshtein": "^3.0.0"
   }
 }

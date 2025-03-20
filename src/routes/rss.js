@@ -1,7 +1,7 @@
 const express = require('express');
 const RSS = require('rss');
 const { feedService } = require('../service/feed');
-const { getFullURL } = require('../service/host');
+const { getFullURL } = require('../service/constants');
 
 const router = express.Router();
 
