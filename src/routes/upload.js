@@ -29,7 +29,7 @@ router.post('/', upload.single('pdf'), (req, res) => {
   });
 
   worker.on('message', (message) => logger.log(`Worker: ${message}`));
-  worker.on('error', (err) => logger.log(`Worker Error: ${err}`));
+  worker.on('error', (err) => logger.error(`Worker Error: ${err}\n${err.stack}`));
   worker.on('exit', (code) => {
     if (code !== 0) logger.log(`Worker stopped with exit code ${code}`);
   });

@@ -3,12 +3,12 @@ const { logger } = require('./logger');
 const { feedService } = require('./feed');
 const { generateMetadata, cleanArticle } = require('./llm');
 const { speak } = require('./tts');
-const {
-  extractArticleFromPDF,
-  extractArticleFromURL,
-  saveArticle,
-} = require('./extract');
 const { randomUUID } = require('crypto');
+const { extractArticleFromPDF, saveArticle } = require('./extract/pdf');
+const { extractorService } = require('./extract');
+const { title } = require('process');
+const { constants } = require('./constants');
+const { podify } = require('./llm/podify');
 
 const toRemoveAny = [
   /SHARE AS GIFT/g, // Atlantic share with
@@ -27,17 +27,16 @@ const process = async (file, articleLink) => {
   const isPdf = !!file;
   const filename = randomUUID();
   let paragraphs = [];
-  let title;
   let articleMetadata;
   if (file) {
-    ({ paragraphs, title } = await extractArticleFromPDF(file, filename));
+    ({ paragraphs, metadata: articleMetadata } = await extractArticleFromPDF(
+      file,
+      filename,
+    ));
   }
   if (articleLink) {
-    ({
-      paragraphs,
-      title,
-      metadata: articleMetadata,
-    } = await extractArticleFromURL(articleLink, filename));
+    ({ paragraphs, metadata: articleMetadata } =
+      await extractorService.extractArticleFromURL(articleLink, filename));
   }
 
   paragraphs = paragraphs.filter(
@@ -65,6 +64,9 @@ const process = async (file, articleLink) => {
   if (isPdf) {
     text = await cleanArticle(text);
     logger.log(`Cleaned to size: ${text.length}`);
+  }
+  if (constants.PODIFY) {
+    text = await podify(text);
   }
   saveArticle(text, `${filename}-cleaned`);
 

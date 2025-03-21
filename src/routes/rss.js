@@ -1,5 +1,6 @@
 const express = require('express');
 const RSS = require('rss');
+const path = require('path');
 const { feedService } = require('../service/feed');
 const { getFullURL } = require('../service/constants');
 
@@ -22,8 +23,10 @@ router.get('/', (req, res) => {
     ],
   });
 
-  const getUrl = (uuid, extension, audioFolder = './audio') =>
-    new URL(`${getFullURL()}${audioFolder}/${uuid}.${extension}`).href;
+  const getUrl = (uuid, extension, audioFolder = './audio') => {
+    const filePath = path.join(`${audioFolder}/${uuid}.${extension}`);
+    return new URL(`${getFullURL()}${filePath}`).href;
+  };
 
   feedService.getFeed().forEach((item) =>
     // @ts-ignore
