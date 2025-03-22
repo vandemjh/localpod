@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
-    restart: always
+    # restart: always
     platform: linux/x86_64
     ports:
       - '56225:56225'

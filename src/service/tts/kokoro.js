@@ -1,22 +1,18 @@
-const { KokoroTTS, TextSplitterStream } = require('kokoro-js');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs');
 const { logger } = require('../logger');
 
 const model_id = 'onnx-community/Kokoro-82M-v1.0-ONNX';
 
-/** @type {KokoroTTS} */
-let tts;
-
 /** @param {string} text, @param {string} filename */
 const speak = async (text, filename) => {
-  await (async () => {
-    tts = await KokoroTTS.from_pretrained(model_id, {
-      dtype: 'q8', // Options: "fp32", "fp16", "q8", "q4", "q4f16"
-      device: 'cpu', // Options: "wasm", "webgpu" (web) or "cpu" (node). If using "webgpu", we recommend using dtype="fp32".
-    });
-  })();
-  logger.log('Loaded TTS model');
+  const { KokoroTTS, TextSplitterStream } = require('kokoro-js');
+  logger.log('Initializing KokoroTTS...');
+  const tts = await KokoroTTS.from_pretrained(model_id, {
+    dtype: 'q8',
+    device: 'cpu',
+  });
+  logger.log('KokoroTTS initialized.');
   const savePath = `./data/audio/${filename}.wav`;
   // First, set up the stream
   const splitter = new TextSplitterStream();

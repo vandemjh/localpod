@@ -1,7 +1,4 @@
 const { logger } = require('../logger');
-const pdfParse = require('pdf-parse');
-const fs = require('fs');
-const os = require('os');
 
 const puppeteer = require('puppeteer');
 const { saveArticle } = require('./pdf');
@@ -10,7 +7,12 @@ const TIMEOUT = 5_000;
 
 /** @returns {Promise<import('.').Article>} */
 const extractArticleFromURL = async (url, filename) => {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    headless: true,
+    defaultViewport: null,
+    // executablePath: '/usr/bin/google-chrome',
+    args: ['--no-sandbox'],
+  });
   const page = await browser.newPage();
 
   await page.setUserAgent(
@@ -20,38 +22,6 @@ const extractArticleFromURL = async (url, filename) => {
   await page.goto(url, { waitUntil: 'networkidle2' }); // Ensures JS loads
   await page.waitForSelector('article p', { timeout: TIMEOUT });
 
-  // <p> text inside <article>
-  // [...document.querySelectorAll('article p')]
-  //   .map((p) => {
-  //     if (!(p instanceof HTMLElement)) return;
-  //     let current = p;
-  //     const hierarchy = [];
-
-  //     while (current && current.tagName.toLowerCase() !== 'article') {
-  //       hierarchy.push(current);
-  //       if (!current.parentElement) break;
-  //       current = current.parentElement;
-  //     }
-
-  //     if (current) hierarchy.push(current);
-
-  //     return hierarchy.reverse();
-  //   })
-  //   .map((i) =>
-  //     i
-  //       ?.map((p) => {
-  //         const attributeNames = p.getAttributeNames();
-  //         const pAttributes = {};
-  //         attributeNames.forEach((i) => (pAttributes[i] = p.getAttribute(i)));
-  //         if (p.tagName.toLowerCase() === 'p') {
-  //           pAttributes.textContent = p.textContent;
-  //           pAttributes.element = p;
-  //         }
-  //         return pAttributes;
-  //       })
-  //       .filter(Boolean),
-  //   ),
-  // );
   const pTagPromise = page.evaluate(() => {
     const articles = document.querySelectorAll('article');
 
@@ -75,8 +45,6 @@ const extractArticleFromURL = async (url, filename) => {
   const titlePromise = page.title();
 
   const [pTags, title] = await Promise.all([pTagPromise, titlePromise]);
-
-  console.log('pTags', pTags);
 
   const paragraphs = [...pTags]
     .map((i) => i?.trim().replaceAll(/\s+/g, ' ') || '')
