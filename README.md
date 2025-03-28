@@ -41,6 +41,15 @@ Localpod is a tool for converting articles or PDFs into audio podcasts. It extra
    PODIFY=true
    ```
 
+   ### Environment Variables:
+   - **NODE_ENV**: Specifies the environment mode. Use `production` for deployment or `development` for local testing.
+   - **PORT**: The port on which the application will run (default: `56225`).
+   - **LOCALCPOD_HOSTNAME**: The hostname for the application (default: `localhost`).
+   - **PROTO**: The protocol to use (`http` or `https`).
+   - **USE_LLM**: Enables or disables LLM-based features like text cleaning and metadata generation (`true` or `false`).
+   - **USE_PUPPETEER**: If `true`, Puppeteer will be used for web scraping; otherwise, the `@extractus/article-extractor` library will be used.
+   - **PODIFY**: Enables or disables the "podify" feature, which optimizes text for TTS narration (`true` or `false`).
+
 4. Start the application:
    ```bash
    npm start
